@@ -316,7 +316,13 @@ const Select = React.createClass({
 		if (this.props.disabled || (event.type === 'mousedown' && event.button !== 0)) {
 			return;
 		}
-
+		if (this.state.isFocused && this.state.isOpen) {
+			this.setState({
+				isOpen: false,
+			});
+			this.blurInput();
+			return;
+		}
 		if (event.target.tagName === 'INPUT') {
 			return;
 		}

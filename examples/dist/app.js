@@ -1430,7 +1430,8 @@ function is(x, y) {
   if (x === y) {
     // Steps 1-5, 7-10
     // Steps 6.b-6.e: +0 != -0
-    return x !== 0 || 1 / x === 1 / y;
+    // Added the nonzero y check to make Flow happy, but it is redundant
+    return x !== 0 || y !== 0 || 1 / x === 1 / y;
   } else {
     // Step 6.a: NaN == NaN
     return x !== x && y !== y;
@@ -2203,12 +2204,7 @@ var Gravatar = function (_React$Component) {
   _createClass(Gravatar, [{
     key: 'render',
     value: function render() {
-      var base = void 0;
-      if (this.props.https) {
-        base = 'https://secure.gravatar.com/avatar/';
-      } else {
-        base = 'http://www.gravatar.com/avatar/';
-      }
+      var base = '//www.gravatar.com/avatar/';
 
       var query = _queryString2.default.stringify({
         s: this.props.size,
@@ -2222,11 +2218,14 @@ var Gravatar = function (_React$Component) {
         d: this.props.default
       });
 
+      // Gravatar service currently trims and lowercases all registered emails
+      var formattedEmail = ('' + this.props.email).trim().toLowerCase();
+
       var hash = void 0;
       if (this.props.md5) {
         hash = this.props.md5;
-      } else if (this.props.email) {
-        hash = (0, _md2.default)(this.props.email);
+      } else if (typeof this.props.email === 'string') {
+        hash = (0, _md2.default)(formattedEmail);
       } else {
         console.warn('Gravatar image can not be fetched. Either the "email" or "md5" prop must be specified.');
         return _react2.default.createElement('script', null);
@@ -2252,7 +2251,6 @@ var Gravatar = function (_React$Component) {
 
       var rest = _objectWithoutProperties(this.props, []);
 
-      delete rest.https;
       delete rest.md5;
       delete rest.email;
       delete rest.rating;
@@ -2262,7 +2260,7 @@ var Gravatar = function (_React$Component) {
       delete rest.default;
       if (!modernBrowser && (0, _isRetina2.default)()) {
         return _react2.default.createElement('img', _extends({
-          alt: 'Gravatar for ' + this.props.email,
+          alt: 'Gravatar for ' + formattedEmail,
           style: this.props.style,
           src: retinaSrc,
           height: this.props.size,
@@ -2272,7 +2270,7 @@ var Gravatar = function (_React$Component) {
         }));
       }
       return _react2.default.createElement('img', _extends({
-        alt: 'Gravatar for ' + this.props.email,
+        alt: 'Gravatar for ' + formattedEmail,
         style: this.props.style,
         src: src,
         srcSet: retinaSrc + ' 2x',
@@ -2293,7 +2291,6 @@ Gravatar.propTypes = {
   md5: _react2.default.PropTypes.string,
   size: _react2.default.PropTypes.number,
   rating: _react2.default.PropTypes.string,
-  https: _react2.default.PropTypes.bool,
   default: _react2.default.PropTypes.string,
   className: _react2.default.PropTypes.string,
   style: _react2.default.PropTypes.object
@@ -2301,7 +2298,6 @@ Gravatar.propTypes = {
 Gravatar.defaultProps = {
   size: 50,
   rating: 'g',
-  https: false,
   default: 'retro'
 };
 
